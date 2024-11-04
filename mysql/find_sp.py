@@ -5,14 +5,14 @@ from mysql.connector import Error
 
 load_dotenv()
 
-host = "34.132.167.191"
-user = "jpiscoya"
-password = "]z<QC.u_v*Zm{0)`"
-database = "UGestionPreciov2"
-host2 = "34.70.53.90"
-user2 = "jpiscoya"
-password2 = 'N&JO~St]"{Hl_\5A'
-database2 = "DGestionPreciov2"
+host = os.getenv("DB_HOST")
+user = os.getenv("DB_USER")
+password = os.getenv("DB_PASS")
+database = os.getenv("DB_DATABASE")
+host2 = os.getenv("DB_HOST2")
+user2 = os.getenv("DB_USER2")
+password2 = os.getenv("DB_PASS2")
+database2 = os.getenv("DB_DATABASE2")
 
 sp_procedure = 'sp_request_type_sync'
 
