@@ -21,24 +21,23 @@ try:
     cursor = conexion.cursor()
     # Obtener los procedimientos almacenados
     cursor.execute(f"""
-        SELECT ROUTINE_NAME, DEFINER
+        SELECT ROUTINE_NAME, DEFINER, ROUTINE_TYPE
         FROM information_schema.ROUTINES
-        WHERE ROUTINE_TYPE = 'PROCEDURE'
-        AND ROUTINE_SCHEMA = '{database}'
+        WHERE ROUTINE_SCHEMA = '{database}'
         AND DEFINER = '{old_definer}@%';
     """)
     rows = cursor.fetchall()
 
-    for proc_name, definer in rows:
+    for proc_name, definer, proc_type in rows:
         # Obtener la definición completa del procedimiento
-        cursor.execute(f"SHOW CREATE PROCEDURE {proc_name};")
+        cursor.execute(f"SHOW CREATE {proc_type} {proc_name};")
         create_statement = cursor.fetchone()[2]
 
         # Cambiar el DEFINER en la definición
         new_definition = create_statement.replace(old_definer, new_definer)
 
         # Eliminar el procedimiento antiguo
-        cursor.execute(f"DROP PROCEDURE IF EXISTS {proc_name};")
+        cursor.execute(f"DROP {proc_type} IF EXISTS {proc_name};")
 
         # Crear el nuevo procedimiento con el nuevo DEFINER
         cursor.execute(new_definition)
@@ -46,7 +45,7 @@ try:
         # Confirmar los cambios
         conexion.commit()
 
-        print("Procedimiento actualizado: ", proc_name)
+        print(f"{proc_type} actualizado: {proc_name}")
 except Error as e:
     print(f"Error en la base de datos: {e}")
 finally:
