@@ -1,8 +1,8 @@
 import os
 import re
+from dotenv import load_dotenv
 import mysql.connector as mysql
 from mysql.connector import Error
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -40,18 +40,21 @@ def parse_m3u_file(file_path):
 
 
 def insert_channels(channels):
-    for channel in channels:
-        try:
-            conn = mysql.connect(
-                host=os.getenv("DB_HOST"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                database=os.getenv("DB_NAME"),
-                port=os.getenv("DB_PORT")
-            )
-            cur = conn.cursor()
+    try:
+        conn = mysql.connect(
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DB_NAME"),
+            port=os.getenv("DB_PORT")
+        )
+        cur = conn.cursor()
 
-            SQL = """
+        cur.execute("TRUNCATE TABLE channels")
+        conn.commit()
+
+        for channel in channels:
+            sql_query = """
                 INSERT INTO channels (channel_id, name, logo, url)
                 VALUES (%s, %s, %s, %s)
             """
@@ -61,21 +64,19 @@ def insert_channels(channels):
                 channel['logo'],
                 channel['url']
             )
-            cur.execute(SQL, variables)
+            cur.execute(sql_query, variables)
             # Confirmar los cambios
             conn.commit()
-            print("Datos insertados correctamente.")
-        except Error as e:
-            print(f"Error al conectar a la base de datos: {e}")
-        finally:
-            if cur is not None:
-                cur.close()
-            if conn is not None:
-                conn.close()
+            print("Canal insertado correctamente.")
+    except Error as e:
+        print(f"Error al conectar a la base de datos: {e}")
+    finally:
+        cur.close()
+        conn.close()
 
 
 # Parsear el archivo
-channels = parse_m3u_file('jesus.m3u')
+list_channels = parse_m3u_file('jesus.m3u')
 
 # Imprimir los resultados
-insert_channels(channels)
+insert_channels(list_channels)

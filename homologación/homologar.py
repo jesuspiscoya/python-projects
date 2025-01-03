@@ -26,6 +26,7 @@ try:
         canal = peso_factor[0]
         ciudad = peso_factor[1]
         distrib = peso_factor[2]
+        codigo = row['CODIGO'].strip()
 
         SQL = """INSERT INTO IN_Producto_PesoFactor (
                 Canal,
@@ -46,21 +47,21 @@ try:
             canal,
             ciudad,
             distrib,
-            f"{row['CODIGO']}",
-            f"{row['CODIGO']}",
+            f"{codigo}",
+            f"{codigo}",
             f"{row['SAP']}",
             f"{row['PESO']}",
-            f"{distrib}-{ciudad}-{row['CODIGO']}-{row['CODIGO']}",
-            f"{distrib}{row['CODIGO']}",
+            f"{distrib}-{ciudad}-{codigo}-{codigo}",
+            f"{distrib}{codigo}",
             0,
             0,
             0
         )
 
-        # Insertar datos en la base de datos MySQL
+        # Insertar datos en la base de datos
         cursor.execute(SQL, values)
-        print(
-            f"[{row['CODIGO']}, {distrib}, {ciudad}] insertada correctamente en la tabla")
+        print(f"[{codigo}, {distrib}, {
+              ciudad}] insertada correctamente")
 
     # Confirmar los cambios
     conexion.commit()
