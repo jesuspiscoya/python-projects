@@ -1,9 +1,9 @@
+from datetime import date, timedelta
 import os
 import time
 import zipfile
 import requests
 import speech_recognition as sr
-from datetime import datetime, timedelta
 from pydub import AudioSegment
 from pydub.exceptions import CouldntDecodeError
 from selenium import webdriver
@@ -38,8 +38,8 @@ def abrir_navegador():
     return wdriver
 
 
-def get_url_driver(URL, wdriver):
-    return wdriver.get(URL)
+def get_url_driver(url, wdriver):
+    return wdriver.get(url)
 
 
 def cerrar_driver_navegador(wdriver):
@@ -166,7 +166,7 @@ def seleccionar_mes_anterior():
     days_copy = days.copy()
 
     for ele in days_copy:
-        if ele.text != f'{datetime.today().day}':
+        if ele.text != f'{date.today().day}':
             days.remove(ele)
         else:
             break
@@ -177,7 +177,7 @@ def seleccionar_mes_anterior():
 def seleccionar_fechas(xpath, num_days):
     espera_explicita_element(driver, xpath).click()
 
-    today = datetime.today()
+    today = date.today()
     primer_dia_mes = today.replace(day=1)
 
     if primer_dia_mes.weekday() == 0 and today.day < 6:
@@ -200,7 +200,7 @@ def seleccionar_fechas(xpath, num_days):
         days_copy = days.copy()
 
         for ele in days_copy:
-            if ele.text != 1:
+            if ele.text != "1":
                 days.remove(ele)
             else:
                 break
@@ -319,7 +319,7 @@ seleccionar_fechas('//*[@id="SuperPEBBRecommercemain-613169225"]/div/div[2]/div/
 xpath_generar = '//*[@id="SuperPEBBRecommercemain-613169225"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[3]/div/div/div/div/div[2]/div/div/div/div/div/div/div[1]/div/div[1]/div/div/div/div[6]/div/div/div'
 espera_explicita_element(driver, xpath_generar).click()
 
-time.sleep(10)
+time.sleep(15)
 
 boton_descarga()
 

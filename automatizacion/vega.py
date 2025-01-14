@@ -1,0 +1,52 @@
+from datetime import date
+import csv
+import requests
+
+
+def generated_csv(url, token, file_name):
+    header = {"Authorization": f"Bearer {token}"}
+    body = {
+        "Proveedor": "6549115da23ca678b53ded25",
+        "FechaInicial": str(date.today().replace(day=1)),
+        "FechaFinal": str(date.today())
+    }
+
+    # Obtener datos de la API
+    res = requests.post(url, json=body, headers=header, timeout=120)
+    data = res.json()
+
+    if res.status_code == 200:
+        values = []
+
+        # Insertar los encabezados
+        values.append(list(data[0].keys()))
+
+        # Insertar los valores
+        for item in data:
+            values.append(list(item.values()))
+
+        # Escribir el archivo CSV con los datos de las Ventas
+        with open(rf'\\selloutapp\FTP\Moderno\CORPORACION VEGA\{file_name}.csv', 'w', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            writer.writerows(values)
+
+        print(f'Se generó el archivo {file_name}.csv con éxito.')
+    else:
+        print(f"{data.get('message')}")
+
+
+URL = 'http://161.132.213.44/api/loginmdb'
+credentials = {'Usuario': 'Laive', 'Contraseña': 'Lai201000ve95450'}
+
+# Obtener token de Login
+response = requests.post(URL, json=credentials, timeout=60)
+data = response.json()
+
+if response.status_code == 200:
+    token = data.get('token')
+
+    generated_csv('http://161.132.213.44/api/getredis', token, 'VENTAS_VEGA')
+    generated_csv(
+        'http://161.132.213.44/api/getinventariousuarioconfiltro', token, 'STOCK_VEGA')
+else:
+    print(f"{data.get('message')}")

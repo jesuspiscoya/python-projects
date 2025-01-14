@@ -53,7 +53,7 @@ try:
             f"{row['PESO']}",
             f"{distrib}-{ciudad}-{codigo}-{codigo}",
             f"{distrib}{codigo}",
-            0,
+            f"{row['ESPROMO']}",
             0,
             0
         )

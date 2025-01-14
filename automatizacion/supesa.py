@@ -1,7 +1,7 @@
 import os
 import time
 import zipfile
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -34,8 +34,8 @@ def abrir_navegador():
     return wdriver
 
 
-def get_url_driver(URL, wdriver):
-    return wdriver.get(URL)
+def get_url_driver(url, wdriver):
+    return wdriver.get(url)
 
 
 def cerrar_driver_navegador(wdriver):
@@ -69,7 +69,7 @@ def seleccionar_mes_anterior():
     days_copy = days.copy()
 
     for ele in days_copy:
-        if ele.text != f'{datetime.today().day}':
+        if ele.text != f'{date.today().day}':
             days.remove(ele)
         else:
             break
@@ -80,7 +80,7 @@ def seleccionar_mes_anterior():
 def seleccionar_fechas(xpath, num_days):
     espera_explicita_element(driver, xpath).click()
 
-    today = datetime.today()
+    today = date.today()
     primer_dia_mes = today.replace(day=1)
 
     if primer_dia_mes.weekday() == 0 and today.day < 6:
@@ -103,7 +103,7 @@ def seleccionar_fechas(xpath, num_days):
         days_copy = days.copy()
 
         for ele in days_copy:
-            if ele.text != 1:
+            if ele.text != "1":
                 days.remove(ele)
             else:
                 break
@@ -116,12 +116,41 @@ def seleccionar_fechas(xpath, num_days):
             break
 
 
-def boton_descarga():
+def boton_descarga(xpath):
     xpath_descarga = '//*[@id="SupermercadosBBRecommercemain-1228722670"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[3]/div/div/div/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div/div[2]/div/div/div/div/div[1]/div/div/div[3]/div/div[1]/div'
     espera_explicita_element(driver, xpath_descarga).click()
 
+    # Selecciona Descarga Dato Fuente Periodo
+    espera_explicita_element(driver, xpath).click()
 
-def unzip_doc(xpath, file_name):
+
+def cerrar_ventana(source):
+    print(f"Error generando el archivo de {source}.")
+
+    # Cerrar ventana emergente de error
+    xpath_close = '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[3]/div/div/div[2]/div[2]'
+    espera_explicita_element(driver, xpath_close).click()
+
+    if source == "stock":
+        boton_descarga(
+            '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[2]/div/div/div[2]/div')
+
+        # Descarga y descomprime archivo zip de Stock
+        unzip_doc(
+            '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[3]/div/div/div[3]/div/div/div[3]/div/div[1]', 'stock', 'stock_supesa.csv')
+    else:
+        boton_descarga(
+            '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[2]/div/div/div[3]')
+
+        # Seleccionar 5 días antes
+        seleccionar_fechas(
+            '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[3]/div/div[3]/div/div[3]/div/div/div/button', 5)
+
+        # Descarga y descomprime archivo zip de Ventas
+        unzip_doc('//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[9]/div/div/div[1]/div', 'ventas', 'venta_supesa.csv')
+
+
+def unzip_doc(xpath, source, file_name):
     espera_explicita_element(driver, xpath).click()
 
     time.sleep(10)
@@ -130,7 +159,12 @@ def unzip_doc(xpath, file_name):
     xpath_zip = '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div/div/div/div[2]/div'
     element = espera_explicita_element(driver, xpath_zip)
     zip_name = element.text
-    element.click()
+
+    if zip_name != "Error generando el archivo.":
+        element.click()
+    else:
+        cerrar_ventana(source)
+        return
 
     # Obtener la ruta del directorio de inicio del usuario
     directorio_usuario = os.path.expanduser('~')
@@ -225,26 +259,21 @@ espera_explicita_element(driver, xpath_generar).click()
 
 time.sleep(15)
 
-boton_descarga()
-
-# Selecciona Descarga Dato Fuente Periodo
-xpath_stock = '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[2]/div/div/div[2]/div'
-espera_explicita_element(driver, xpath_stock).click()
+boton_descarga(
+    '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[2]/div/div/div[2]/div')
 
 # Descarga y descomprime archivo zip de Stock
-unzip_doc('//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[3]/div/div/div[3]/div/div/div[3]/div/div[1]', 'stock_supesa.csv')
+unzip_doc('//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[3]/div/div/div[3]/div/div/div[3]/div/div[1]',
+          'stock', 'stock_supesa.csv')
 
-boton_descarga()
-
-# Selecciona Descarga Dato Fuente Calendario
-xpath_venta = '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[2]/div/div/div[3]'
-espera_explicita_element(driver, xpath_venta).click()
+boton_descarga(
+    '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[2]/div/div/div[3]')
 
 # Seleccionar 5 días antes
 seleccionar_fechas(
     '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[3]/div/div[3]/div/div[3]/div/div/div/button', 5)
 
 # Descarga y descomprime archivo zip de Ventas
-unzip_doc('//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[9]/div/div/div[1]/div', 'venta_supesa.csv')
+unzip_doc('//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[9]/div/div/div[1]/div', 'ventas', 'venta_supesa.csv')
 
 cerrar_driver_navegador(driver)

@@ -1,8 +1,10 @@
+from datetime import date
 import os
 import shutil
 import time
+import requests
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait, Select
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
@@ -56,17 +58,29 @@ def espera_explicita_element(wdriver, xpath):
         print("Espera explicita, no se encontro o no se visualizo el elemento: " + xpath)
 
 
-def descarga_archivo(url, file_name):
-    # Ingresar a página de descarga
-    get_url_driver(url, driver)
+def generar_csv(url, token, body, source):
+    header = {"Authorization": f"Bearer {token}"}
+    json = {
+        "fileType": "csv",
+        "delimiter": ",",
+        "dimensions": "D_DAY,D_MONTH,D_WEEK,D_YEAR,P_PRODUCT,P_PRODUCT_CODE,P_PRODUCT_DESC,P_PRODUCT_EAN,P_CATEGORY_1,P_CATEGORY_2,P_CATEGORY_3,P_CATEGORY_4,C_PRODUCT_STATUS,S_STORE,S_STORE_CODE,S_STORE_DESC,S_CATEGORY_1"
+    }
+    json = json | body
+
+    res = requests.post(url, json=json, headers=header, timeout=60)
+
+    if res.status_code == 200:
+        print(f"Se generó el archivo de {source} con éxito.")
+    else:
+        print(f"{res.json().get('message')}")
+
+
+def descargar_archivo(xpath, source, today, file_name):
+    print(f'Descargando archivo de {source}...')
 
     # Descargar archivo
-    xpath_file = '//*[@id="row"]/tbody/tr[1]/td/a'
-    button_download = espera_explicita_element(driver, xpath_file)
-    button_download.click()
-
-    txt_name = button_download.get_attribute('href').replace(
-        'https://b2b.tottus.com/b2btopepr/servlet/download/', '')
+    espera_explicita_element(driver, xpath).find_element(
+        By.PARTIAL_LINK_TEXT, f'{source}-SMU_{today}').click()
 
     time.sleep(5)
 
@@ -74,17 +88,19 @@ def descarga_archivo(url, file_name):
     directorio_usuario = os.path.expanduser('~')
     # Construir la ruta completa del directorio de descargas
     ruta_origen = os.path.join(directorio_usuario, 'Downloads')
-    ruta_destino = r'\\selloutapp\FTP\Moderno\TOTTUS'
+    ruta_destino = r'\\selloutapp\FTP\Moderno\MAYORSA'
 
     # Verificar si el directorio de descargas existe
     if os.path.exists(ruta_origen):
-        txt_origen = os.path.join(ruta_origen, txt_name)
+        files = os.listdir(ruta_origen)
+        name = [f for f in files if f'{source}-SMU_{today}' in f]
+        file = os.path.join(ruta_origen, name[0])
 
-        if os.path.exists(txt_origen):
-            print(f"Archivo encontrado: {txt_origen}")
+        if os.path.exists(file):
+            print(f"Archivo encontrado: {file}")
 
             # Cambiar el nombre del archivo
-            os.rename(txt_origen, os.path.join(ruta_origen, file_name))
+            os.rename(file, os.path.join(ruta_origen, file_name))
 
             nuevo_nombre = os.path.join(ruta_destino, file_name)
 
@@ -101,49 +117,73 @@ def descarga_archivo(url, file_name):
             print("No se encontró el archivo.")
     else:
         print("No se pudo encontrar la ruta del directorio de descargas.")
+    return
 
 
 driver = abrir_navegador()
-url_login = 'https://b2b.tottus.com/b2btoclpr/grafica/html/main_home.html'
+url_login = 'https://smu.portal2b.com/views/2'
 get_url_driver(url_login, driver)
 
 # Escritura de elementos - Credenciales
-company = '20100095450'
-username = '10020310'
-pwd = 'Lcuesta@25'
+username = 'roxana.caceres@laive.pe'
+pwd = 'Laive2024'
 
-# Seleccionar B2B Tottus Perú
-xpath_select = '//*[@id="CADENA"]'
-Select(espera_explicita_element(driver, xpath_select)
-       ).select_by_visible_text('Tottus Perú')
-
-xpath_company = '//*[@id="empresa"]'
-e_company = espera_explicita_element(driver, xpath_company)
-e_company.clear()
-e_company.send_keys(company)
-
-xpath_username = '//*[@id="usuario"]'
+xpath_username = '//input[@id="user_email"]'
 e_username = espera_explicita_element(driver, xpath_username)
 e_username.clear()
 e_username.send_keys(username)
 
-xpath_pass = '//*[@id="clave"]'
+xpath_pass = '//input[@id="user_password"]'
 e_pass = espera_explicita_element(driver, xpath_pass)
 e_pass.clear()
 e_pass.send_keys(pwd)
 
 # Click en iniciar login de credenciales
-xpath_submit = '//*[@id="entrar2"]'
+xpath_submit = '//*[@id="new_user"]/div/div[5]/button'
 espera_explicita_element(driver, xpath_submit).click()
 
-time.sleep(5)
+time.sleep(2)
 
-# Descargar archivo de Ventas
-descarga_archivo(
-    'https://b2b.tottus.com/b2btopepr/logica/jsp/B2BvFDescarga.do?tipo=eVTA&opcId=223', 'venta_tottus.txt')
+xpath_borrar = '//iframe[@id="tableau"]'
+iframe = espera_explicita_element(driver, xpath_borrar)
+driver.switch_to.frame(iframe)
 
-# Descargar archivo de Stock
-descarga_archivo(
-    'https://b2b.tottus.com/b2btopepr/logica/jsp/B2BvFDescarga.do?tipo=eCAT', 'stock_tottus.txt')
+# Obtener la URL dentro del iframe utilizando JavaScript
+url_iframe = driver.execute_script('return window.location.href')
+url_token = url_iframe.replace('https://downloaders-frontend-smu.portal2b.com/sales-smu#access_token',
+                               'https://downloaders-backend-smu.portal2b.com/api/login?id').replace('&token_type=Bearer&expires_in=86400', '')
+
+response = requests.get(url_token, timeout=60)
+data = response.json()
+today = date.today()
+
+if response.status_code == 200:
+    values = {"reportDownloadingTitle": f"Stock-SMU_{today}"}
+    generar_csv('https://downloaders-backend-smu.portal2b.com/api/reports/generate_smu/stock',
+                data.get('token'), values, 'stock')
+
+    values = {
+        "reportDownloadingTitle": f"Venta-SMU_{today}",
+        "dates": {"from": str(today.replace(day=1)), "to": str(today)}
+    }
+    generar_csv('https://downloaders-backend-smu.portal2b.com/api/reports/generate_smu/sales',
+                data.get('token'), values, 'ventas')
+
+    time.sleep(90)
+
+    # Ingresar a página de descarga
+    get_url_driver('https://smu.portal2b.com/views?navbar=Descargador', driver)
+
+    descargar_archivo('//div[@id="ventas"]', 'Venta',
+                      today, 'VENTAS_MAYORSA.csv')
+
+    # Ocultar sección de ventas
+    xpath_ventas = '//*[@id="accordionEmails"]/button'
+    espera_explicita_element(driver, xpath_ventas).click()
+
+    descargar_archivo('//div[@id="inventarios"]',
+                      'Stock', today, 'STOCK_MAYORSA.csv')
+else:
+    print(f"{data.get('message')}")
 
 cerrar_driver_navegador(driver)
