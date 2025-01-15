@@ -20,21 +20,19 @@ def parse_m3u_file(file_path):
         if line.startswith('#EXTINF:'):
             # Extraer metadatos usando expresión regular
             match = re.search(
-                r'tvg-id="([^"]*)".*?tvg-name="([^"]*)".*?tvg-logo="([^"]*)"', line)
+                r'tvg-id="([^"]*)".*?tvg-logo="([^"]*)".*?,\s*(.*)$', line)
             if match:
                 tvg_id = match.group(1)
-                tvg_name = match.group(2)
-                tvg_logo = match.group(3)
+                tvg_name = match.group(3)
+                tvg_logo = match.group(2)
+                url = lines[i + 1].strip()
 
-                # La URL está en la línea siguiente
-                if i + 1 < len(lines):
-                    url = lines[i + 1].strip()
-                    channels.append({
-                        'id': tvg_id,
-                        'name': tvg_name,
-                        'logo': tvg_logo,
-                        'url': url
-                    })
+                channels.append({
+                    'id': tvg_id,
+                    'name': tvg_name,
+                    'logo': tvg_logo,
+                    'url': url
+                })
 
     return channels
 
@@ -53,21 +51,13 @@ def insert_channels(channels):
         cur.execute("TRUNCATE TABLE channels")
         conn.commit()
 
-        for channel in channels:
-            sql_query = """
-                INSERT INTO channels (channel_id, name, logo, url)
-                VALUES (%s, %s, %s, %s)
-            """
-            variables = (
-                channel['id'],
-                channel['name'],
-                channel['logo'],
-                channel['url']
-            )
-            cur.execute(sql_query, variables)
-            # Confirmar los cambios
-            conn.commit()
-            print("Canal insertado correctamente.")
+        sql_query = "INSERT INTO channels (channel_id, name, logo, url) VALUES (%s, %s, %s, %s)"
+        values = [tuple(channel.values()) for channel in channels]
+
+        cur.executemany(sql_query, values)
+        conn.commit()
+
+        print(f"{len(channels)} canales insertados correctamente.")
     except Error as e:
         print(f"Error al conectar a la base de datos: {e}")
     finally:
@@ -76,7 +66,7 @@ def insert_channels(channels):
 
 
 # Parsear el archivo
-list_channels = parse_m3u_file('jesus.m3u')
+list_channels = parse_m3u_file('iptv/jesus.m3u')
 
 # Imprimir los resultados
 insert_channels(list_channels)
