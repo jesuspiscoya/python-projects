@@ -282,7 +282,7 @@ get_url_driver(url_login, driver)
 
 # Escritura de elementos - Credenciales
 username = 'lisbeth.cuesta@laive.pe'
-pwd = 'Tracey@garcia24'
+pwd = 'lcuesta@2025'
 
 xpath_username = '//input[@id="username"]'
 e_username = espera_explicita_element(driver, xpath_username)

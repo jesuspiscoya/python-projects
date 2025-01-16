@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 import csv
 import requests
 
@@ -7,7 +7,7 @@ def generated_csv(url, token, file_name):
     header = {"Authorization": f"Bearer {token}"}
     body = {
         "Proveedor": "6549115da23ca678b53ded25",
-        "FechaInicial": str(date.today().replace(day=1)),
+        "FechaInicial": str(date.today() - timedelta(days=5)),
         "FechaFinal": str(date.today())
     }
 

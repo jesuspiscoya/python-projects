@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 import os
 import shutil
 import time
@@ -164,7 +164,7 @@ if response.status_code == 200:
 
     values = {
         "reportDownloadingTitle": f"Venta-SMU_{today}",
-        "dates": {"from": str(today.replace(day=1)), "to": str(today)}
+        "dates": {"from": str(today - timedelta(days=5)), "to": str(today)}
     }
     generar_csv('https://downloaders-backend-smu.portal2b.com/api/reports/generate_smu/sales',
                 data.get('token'), values, 'ventas')
