@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+  </head>
+  <body>
+    <div>
+      <video style="width: 100%" id="player" controls></video>
+    </div>
+    <script src="//cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        var video = document.getElementById("player");
+        var source = "https://redirector.rudo.video/hls-video/567ffde3fa319fadf3419efda25619456231dfea/latina/latina.smil/playlist.m3u8";
+        const defaultOptions = {};
+
+        if (Hls.isSupported()) {
+          const hls = new Hls();
+          hls.loadSource(source);
+          hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+            const quality = hls.levels.map((level) => level.height);
+            defaultOptions.controls = [
+              "play-large",
+              "restart",
+              "rewind",
+              "play",
+              "fast-forward",
+              "progress",
+              "current-time",
+              "mute",
+              "volume",
+              "captions",
+              "settings",
+              "pip",
+              "airplay",
+              "fullscreen",
+            ];
+            defaultOptions.quality = {
+              default: quality[0],
+              options: quality,
+              forced: true,
+              onChange: (e) => updateQuality(e),
+            };
+
+            new Plyr(video, defaultOptions);
+          });
+
+          hls.attachMedia(video);
+          window.hls = hls;
+        }
+
+        function updateQuality(newQuality) {
+          window.hls.levels.forEach((level, levelIndex) => {
+            if (level.height === newQuality) {
+              window.hls.currentLevel = levelIndex;
+            }
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

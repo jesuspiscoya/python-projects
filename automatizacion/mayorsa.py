@@ -61,6 +61,7 @@ def espera_explicita_element(wdriver, xpath):
 def generar_csv(url, token, body, source):
     header = {"Authorization": f"Bearer {token}"}
     json = {
+        "reportDownloadingTitle": f"{source}-SMU_{today}",
         "fileType": "csv",
         "delimiter": ",",
         "dimensions": "D_DAY,D_MONTH,D_WEEK,D_YEAR,P_PRODUCT,P_PRODUCT_CODE,P_PRODUCT_DESC,P_PRODUCT_EAN,P_CATEGORY_1,P_CATEGORY_2,P_CATEGORY_3,P_CATEGORY_4,C_PRODUCT_STATUS,S_STORE,S_STORE_CODE,S_STORE_DESC,S_CATEGORY_1"
@@ -158,28 +159,22 @@ data = response.json()
 today = date.today()
 
 if response.status_code == 200:
-    values = {"reportDownloadingTitle": f"Stock-SMU_{today}"}
     generar_csv('https://downloaders-backend-smu.portal2b.com/api/reports/generate_smu/stock',
-                data.get('token'), values, 'stock')
+                data.get('token'), {}, 'Stock')
 
     values = {
-        "reportDownloadingTitle": f"Venta-SMU_{today}",
         "dates": {"from": str(today - timedelta(days=5)), "to": str(today)}
     }
     generar_csv('https://downloaders-backend-smu.portal2b.com/api/reports/generate_smu/sales',
-                data.get('token'), values, 'ventas')
+                data.get('token'), values, 'Venta')
 
-    time.sleep(90)
+    time.sleep(70)
 
     # Ingresar a página de descarga
     get_url_driver('https://smu.portal2b.com/views?navbar=Descargador', driver)
 
     descargar_archivo('//div[@id="ventas"]', 'Venta',
                       today, 'VENTAS_MAYORSA.csv')
-
-    # Ocultar sección de ventas
-    xpath_ventas = '//*[@id="accordionEmails"]/button'
-    espera_explicita_element(driver, xpath_ventas).click()
 
     descargar_archivo('//div[@id="inventarios"]',
                       'Stock', today, 'STOCK_MAYORSA.csv')
