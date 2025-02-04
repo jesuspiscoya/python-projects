@@ -12,7 +12,6 @@ distributors = [
     "3a",
     "CienSur",
     "Corseba",
-    "Lozano",
     "Rame",
     "Dinorsa"
 ]

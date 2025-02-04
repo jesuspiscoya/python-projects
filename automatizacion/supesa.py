@@ -166,6 +166,8 @@ def unzip_doc(xpath, source, file_name):
         cerrar_ventana(source)
         return
 
+    time.sleep(10)
+
     # Obtener la ruta del directorio de inicio del usuario
     directorio_usuario = os.path.expanduser('~')
     # Construir la ruta completa del directorio de descargas

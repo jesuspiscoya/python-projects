@@ -119,11 +119,10 @@ espera_explicita_element(driver, xpath_submit).click()
 xpath_no = '//input[@id="idBtn_Back"]'
 espera_explicita_element(driver, xpath_no).click()
 
-xpath_list_mails = '//*[@id="MailList"]/div/div/div/div/div/div/div'
-espera_explicita_element(driver, xpath_list_mails)
-
 xpath_first_mail = '//*[@id="MailList"]/div/div/div/div/div/div/div/div[2]'
 espera_explicita_element(driver, xpath_first_mail).click()
+
+time.sleep(5)
 
 xpath_donwload = '//*[@id="focused"]/div[2]/div/div/div/div/div'
 espera_explicita_element(driver, xpath_donwload).click()

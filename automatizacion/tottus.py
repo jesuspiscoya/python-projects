@@ -110,7 +110,7 @@ get_url_driver(url_login, driver)
 # Escritura de elementos - Credenciales
 company = '20100095450'
 username = '10020310'
-pwd = 'Lcuesta@25'
+pwd = 'lisbeth@2025'
 
 # Seleccionar B2B Tottus Perú
 xpath_select = '//*[@id="CADENA"]'
