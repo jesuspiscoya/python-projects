@@ -1,6 +1,10 @@
-from datetime import date, timedelta
+import os
 import csv
 import requests
+from datetime import date, timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def generated_csv(url, token, file_name):
@@ -35,8 +39,12 @@ def generated_csv(url, token, file_name):
         print(f"{data.get('message')}")
 
 
+# Credenciales de acceso
+user = os.getenv("USER_VEGA")
+psw = os.getenv("PASS_VEGA")
+
 URL = 'http://161.132.213.44/api/loginmdb'
-credentials = {'Usuario': 'Laive', 'Contraseña': 'Lai201000ve95450'}
+credentials = {'Usuario': user, 'Contraseña': psw}
 
 # Obtener token de Login
 response = requests.post(URL, json=credentials, timeout=60)

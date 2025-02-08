@@ -3,11 +3,14 @@ import os
 import shutil
 import time
 import requests
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
+
+load_dotenv()
 
 
 def abrir_navegador():
@@ -121,23 +124,23 @@ def descargar_archivo(xpath, source, today, file_name):
     return
 
 
+# Credenciales de acceso
+user = os.getenv("USER_MAYORSA")
+psw = os.getenv("PASS_MAYORSA")
+
 driver = abrir_navegador()
 url_login = 'https://smu.portal2b.com/views/2'
 get_url_driver(url_login, driver)
 
-# Escritura de elementos - Credenciales
-username = 'roxana.caceres@laive.pe'
-pwd = 'Laive2024'
-
 xpath_username = '//input[@id="user_email"]'
 e_username = espera_explicita_element(driver, xpath_username)
 e_username.clear()
-e_username.send_keys(username)
+e_username.send_keys(user)
 
 xpath_pass = '//input[@id="user_password"]'
 e_pass = espera_explicita_element(driver, xpath_pass)
 e_pass.clear()
-e_pass.send_keys(pwd)
+e_pass.send_keys(psw)
 
 # Click en iniciar login de credenciales
 xpath_submit = '//*[@id="new_user"]/div/div[5]/button'

@@ -1,12 +1,14 @@
 import os
 import shutil
 import time
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
+load_dotenv()
 
 def abrir_navegador():
     # navegador - configuracion
@@ -107,10 +109,10 @@ driver = abrir_navegador()
 url_login = 'https://b2b.tottus.com/b2btoclpr/grafica/html/main_home.html'
 get_url_driver(url_login, driver)
 
-# Escritura de elementos - Credenciales
-company = '20100095450'
-username = '10020310'
-pwd = 'lisbeth@2025'
+# Credenciales de acceso
+company = os.getenv("COMPANY_TOTTUS")
+user = os.getenv("USER_TOTTUS")
+psw = os.getenv("PASS_TOTTUS")
 
 # Seleccionar B2B Tottus Perú
 xpath_select = '//*[@id="CADENA"]'
@@ -125,12 +127,12 @@ e_company.send_keys(company)
 xpath_username = '//*[@id="usuario"]'
 e_username = espera_explicita_element(driver, xpath_username)
 e_username.clear()
-e_username.send_keys(username)
+e_username.send_keys(user)
 
 xpath_pass = '//*[@id="clave"]'
 e_pass = espera_explicita_element(driver, xpath_pass)
 e_pass.clear()
-e_pass.send_keys(pwd)
+e_pass.send_keys(psw)
 
 # Click en iniciar login de credenciales
 xpath_submit = '//*[@id="entrar2"]'

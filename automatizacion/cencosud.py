@@ -4,6 +4,7 @@ import time
 import zipfile
 import requests
 import speech_recognition as sr
+from dotenv import load_dotenv
 from pydub import AudioSegment
 from pydub.exceptions import CouldntDecodeError
 from selenium import webdriver
@@ -11,6 +12,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
+
+load_dotenv()
 
 
 def abrir_navegador():
@@ -278,23 +281,23 @@ def unzip_doc(xpath, file_name):
         print("No se pudo encontrar la ruta del directorio de descargas.")
 
 
+# Credenciales de acceso
+user = os.getenv("USER_CENCOSUD")
+psw = os.getenv("PASS_CENCOSUD")
+
 driver = abrir_navegador()
 url_login = 'https://www.cenconlineb2b.com/SuperPE/BBRe-commerce/main'
 get_url_driver(url_login, driver)
 
-# Escritura de elementos - Credenciales
-username = 'lisbeth.cuesta@laive.pe'
-pwd = 'lcuesta@2025'
-
 xpath_username = '//input[@id="username"]'
 e_username = espera_explicita_element(driver, xpath_username)
 e_username.clear()
-e_username.send_keys(username)
+e_username.send_keys(user)
 
 xpath_pass = '//input[@id="password"]'
 e_pass = espera_explicita_element(driver, xpath_pass)
 e_pass.clear()
-e_pass.send_keys(pwd)
+e_pass.send_keys(psw)
 
 # Resolver reCAPTCHA de Google
 resolver_recaptcha()

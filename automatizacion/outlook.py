@@ -1,5 +1,4 @@
-from datetime import date
-from datetime import timedelta
+from datetime import date, timedelta
 import os
 import zipfile
 import win32com.client

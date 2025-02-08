@@ -1,11 +1,14 @@
 import os
 import time
 import zipfile
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
+
+load_dotenv()
 
 
 def abrir_navegador():
@@ -94,14 +97,14 @@ driver = abrir_navegador()
 url_login = 'https://outlook.office.com/mail/'
 get_url_driver(url_login, driver)
 
-# Escritura de elementos - Credenciales
-username = 'mayra.carbajal@laive.pe'
-pwd = 'dhorian123mayra'
+# Credenciales de acceso
+user = os.getenv("USER_OUTLOOK")
+psw = os.getenv("PASS_OUTLOOK")
 
 xpath_username = '//input[@id="i0116"]'
 e_username = espera_explicita_element(driver, xpath_username)
 e_username.clear()
-e_username.send_keys(username)
+e_username.send_keys(user)
 
 # Click en boton siguiente
 xpath_next = '//input[@id="idSIButton9"]'
@@ -110,7 +113,7 @@ espera_explicita_element(driver, xpath_next).click()
 xpath_pass = '//input[@id="i0118"]'
 e_pass = espera_explicita_element(driver, xpath_pass)
 e_pass.clear()
-e_pass.send_keys(pwd)
+e_pass.send_keys(psw)
 
 # Click en boton siguiente
 xpath_submit = '//input[@id="idSIButton9"]'

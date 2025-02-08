@@ -1,17 +1,20 @@
 import os
 from ftplib import FTP
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Datos de conexión
-FTP_HOST = 'sellout.laive.pe'
-FTP_USER = 'ftp_daro'
-FTP_PASS = 'D4skh3lp#X'
+host = os.getenv("FTP_HOST")
+user = os.getenv("FTP_USER")
+psw = os.getenv("FTP_PASS")
 
 # Archivo local y remoto
 PATH_LOCAL = r'C:\Users\jpiscoya\Downloads\daro'
 PATH_REMOTE = 'FTP_DARO'
 # Conectarse al servidor FTP
-ftp = FTP(FTP_HOST)
-ftp.login(FTP_USER, FTP_PASS)
+ftp = FTP(host)
+ftp.login(user, psw)
 
 # Cambiar al directorio específico en el servidor FTP
 ftp.cwd(PATH_REMOTE)
