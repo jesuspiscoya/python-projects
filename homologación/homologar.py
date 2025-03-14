@@ -54,8 +54,8 @@ try:
             f"{distrib}-{ciudad}-{codigo}-{codigo}",
             f"{distrib}{codigo}",
             f"{row['ESPROMO']}",
-            0,
-            0
+            f"{row['GRAMOS']}",
+            f"{row['KILOS']}"
         )
 
         # Insertar datos en la base de datos

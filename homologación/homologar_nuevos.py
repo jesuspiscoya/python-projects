@@ -10,7 +10,6 @@ database = os.getenv("DB_DATABASE")
 
 distributors = [
     "3a",
-    "CienSur",
     "Corseba",
     "Rame",
     "Dinorsa"

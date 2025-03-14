@@ -122,15 +122,17 @@ espera_explicita_element(driver, xpath_submit).click()
 xpath_no = '//input[@id="idBtn_Back"]'
 espera_explicita_element(driver, xpath_no).click()
 
+time.sleep(10)
+
 xpath_first_mail = '//*[@id="MailList"]/div/div/div/div/div/div/div/div[2]'
 espera_explicita_element(driver, xpath_first_mail).click()
 
-time.sleep(5)
+time.sleep(10)
 
 xpath_donwload = '//*[@id="focused"]/div[2]/div/div/div/div/div'
 espera_explicita_element(driver, xpath_donwload).click()
 
-time.sleep(15)
+time.sleep(10)
 
 unzip_doc()
 
