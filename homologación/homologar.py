@@ -14,7 +14,7 @@ conexion = conn.getConexion()
 
 try:
     df = pd.read_excel(
-        "homologación/productos.xlsx", sheet_name="Hoja1", dtype=str)
+        "homologación/homologar.xlsx", sheet_name="Hoja1", dtype=str)
 
     cursor = conexion.cursor()
 

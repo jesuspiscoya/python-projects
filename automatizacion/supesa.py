@@ -60,6 +60,33 @@ def espera_explicita_element(wdriver, xpath):
         print("Espera explicita, no se encontro o no se visualizo el elemento: " + xpath)
 
 
+def login_supesa():
+    # Credenciales de acceso
+    user = os.getenv("USER_SUPESA")
+    psw = os.getenv("PASS_SUPESA")
+
+    xpath_username = '//input[@id="username"]'
+    e_username = espera_explicita_element(driver, xpath_username)
+    e_username.clear()
+    e_username.send_keys(user)
+
+    xpath_pass = '//input[@id="password"]'
+    e_pass = espera_explicita_element(driver, xpath_pass)
+    e_pass.clear()
+    e_pass.send_keys(psw)
+
+    # Click en iniciar login de credenciales
+    xpath_submit = '//input[@id="kc-login"]'
+    espera_explicita_element(driver, xpath_submit).click()
+
+    time.sleep(8)
+
+
+def desactivar_productos_activos():
+    xpath_activos = '//*[@id="SupermercadosBBRecommercemain-1228722670"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[3]/div/div/div/div/div[2]/div/div/div/div/div/div/div[1]/div/div[1]/div/div/div/div[2]/div/div[4]/div/div/div[3]/span'
+    espera_explicita_element(driver, xpath_activos).click()
+
+
 def seleccionar_mes_anterior():
     xpath_before_month = '//*[@id="PID_VAADIN_POPUPCAL"]/tbody/tr[1]/td[2]/button'
     espera_explicita_element(driver, xpath_before_month).click()
@@ -154,11 +181,15 @@ def cerrar_ventana(source):
 
 
 def unzip_doc(xpath, source, file_name):
+    if source == "productos":
+        xpath_excel = '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[2]/div/div/div/div/span[2]/label'
+        espera_explicita_element(driver, xpath_excel).click()
+
     espera_explicita_element(driver, xpath).click()
 
     time.sleep(10)
 
-    # Descargar archivo zip de Ventas
+    # Descargar archivo zip
     xpath_zip = '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div/div/div/div[2]/div'
     element = espera_explicita_element(driver, xpath_zip)
     zip_name = element.text
@@ -179,14 +210,12 @@ def unzip_doc(xpath, source, file_name):
 
     # Verificar si el directorio de descargas existe
     if os.path.exists(ruta_origen):
-        time.sleep(10)
-
         zip_file = os.path.join(ruta_origen, zip_name)
 
         if zip_name != "":
             print(f"Archivo encontrado: {zip_file}")
 
-            # Descomprimir el archivo ZIP
+            # Descomprimir el archivo zip
             with zipfile.ZipFile(zip_file, 'r') as zip_ref:
                 # Obtener la lista de archivos extraídos
                 archivo_extraido = zip_ref.namelist()[0]
@@ -209,7 +238,7 @@ def unzip_doc(xpath, source, file_name):
 
                 print(f"Archivo descomprimido correctamente en {ruta_destino}")
 
-            # Eliminar el archivo ZIP original
+            # Eliminar el archivo zip original
             os.remove(zip_file)
             print(f"Archivo ZIP eliminado: {zip_file}")
         else:
@@ -218,51 +247,31 @@ def unzip_doc(xpath, source, file_name):
         print("No se pudo encontrar la ruta del directorio de descargas.")
 
 
-# Credenciales de acceso
-user = os.getenv("USER_SUPESA")
-psw = os.getenv("PASS_SUPESA")
-
 driver = abrir_navegador()
 url_login = 'https://b2b.intercorpretail.pe/Supermercados/BBRe-commerce/main'
 get_url_driver(url_login, driver)
 
-xpath_username = '//input[@id="username"]'
-e_username = espera_explicita_element(driver, xpath_username)
-e_username.clear()
-e_username.send_keys(user)
+login_supesa()
 
-xpath_pass = '//input[@id="password"]'
-e_pass = espera_explicita_element(driver, xpath_pass)
-e_pass.clear()
-e_pass.send_keys(psw)
-
-# Click en iniciar login de credenciales
-xpath_submit = '//input[@id="kc-login"]'
-espera_explicita_element(driver, xpath_submit).click()
-
-time.sleep(8)
-
-# Ingresar a pestaña comercial
+# Ingresar a pestaña Comercial
 xpath_comercial = '//*[@id="SupermercadosBBRecommercemain-1228722670"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[3]/div/span[3]'
 espera_explicita_element(driver, xpath_comercial).click()
 
-time.sleep(2)
-
-# Ingresar a subpestaña ventas
+# Ingresar a subpestaña Ventas
 xpath_ventas = '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[2]/div/div/span[2]'
 espera_explicita_element(driver, xpath_ventas).click()
 
-# Desmarcar checkbox de productos activos
-xpath_activos = '//*[@id="SupermercadosBBRecommercemain-1228722670"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[3]/div/div/div/div/div[2]/div/div/div/div/div/div/div[1]/div/div[1]/div/div/div/div[2]/div/div[4]/div/div/div[3]/span'
-espera_explicita_element(driver, xpath_activos).click()
+desactivar_productos_activos()
 
 # Seleccionar la fecha anterior
 seleccionar_fechas('//*[@id="SupermercadosBBRecommercemain-1228722670"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[3]/div/div/div/div/div[2]/div/div/div/div/div/div/div[1]/div/div[1]/div/div/div/div[4]/div/div/div[1]/div/div[3]/div/div[1]/div/div[3]/div/button', 1)
 
+time.sleep(1)
+
 xpath_generar = '//*[@id="SupermercadosBBRecommercemain-1228722670"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[3]/div/div/div/div/div[2]/div/div/div/div/div/div/div[1]/div/div[1]/div/div/div/div[5]/div/div/div'
 espera_explicita_element(driver, xpath_generar).click()
 
-time.sleep(15)
+time.sleep(10)
 
 boton_descarga(
     '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[2]/div/div/div[2]/div')
@@ -280,5 +289,33 @@ seleccionar_fechas(
 
 # Descarga y descomprime archivo zip de Ventas
 unzip_doc('//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[9]/div/div/div[1]/div', 'ventas', 'venta_supesa.csv')
+
+# Ingresar a pestaña Maestros
+xpath_maestros = '//*[@id="SupermercadosBBRecommercemain-1228722670"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[3]/div/span[2]'
+espera_explicita_element(driver, xpath_maestros).click()
+
+# Ingresar a subpestaña Ficha de Productos
+xpath_productos = '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[2]/div/div/span[1]'
+espera_explicita_element(driver, xpath_productos).click()
+
+time.sleep(1)
+
+desactivar_productos_activos()
+
+# Generar reporte de productos
+xpath_generar = '//*[@id="SupermercadosBBRecommercemain-1228722670"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[3]/div/div/div/div/div[2]/div/div/div/div/div/div/div[1]/div/div[1]/div/div/div/div[3]/div/div/div'
+espera_explicita_element(driver, xpath_generar).click()
+
+time.sleep(5)
+
+xpath_descargar = '//*[@id="SupermercadosBBRecommercemain-1228722670"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[3]/div/div/div/div/div[2]/div/div/div/div/div/div/div[2]/div/div[1]/div/div/div[3]/div/div[1]/div'
+espera_explicita_element(driver, xpath_descargar).click()
+
+xpath_reporte = '//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[2]/div/div/div[1]'
+espera_explicita_element(driver, xpath_reporte).click()
+
+# Descarga y descomprime archivo zip de Stock
+unzip_doc('//*[@id="SupermercadosBBRecommercemain-1228722670-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[3]/div/div/div[1]',
+          'productos', 'productos_supesa.xls')
 
 cerrar_driver_navegador(driver)

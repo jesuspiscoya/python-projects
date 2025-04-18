@@ -64,6 +64,31 @@ def espera_explicita_element(wdriver, xpath):
         print("Espera explicita, no se encontro o no se visualizo el elemento: " + xpath)
 
 
+def login_cencosud():
+    # Credenciales de acceso
+    user = os.getenv("USER_CENCOSUD")
+    psw = os.getenv("PASS_CENCOSUD")
+
+    xpath_username = '//input[@id="username"]'
+    e_username = espera_explicita_element(driver, xpath_username)
+    e_username.clear()
+    e_username.send_keys(user)
+
+    xpath_pass = '//input[@id="password"]'
+    e_pass = espera_explicita_element(driver, xpath_pass)
+    e_pass.clear()
+    e_pass.send_keys(psw)
+
+    # Resolver reCAPTCHA de Google
+    resolver_recaptcha()
+
+    # Click en iniciar login de credenciales
+    xpath_submit = '//input[@id="kc-login"]'
+    espera_explicita_element(driver, xpath_submit).click()
+
+    time.sleep(8)
+
+
 def transcribir_audio():
     # Convertir el archivo MP3 a WAV
     try:
@@ -129,13 +154,13 @@ def resolver_recaptcha(is_valid=True):
         # Click en el botón de reintentar si el audio no es válido
         xpath_btn_retry = '//button[@id="recaptcha-reload-button"]'
         espera_explicita_element(driver, xpath_btn_retry).click()
-        time.sleep(5)
+        time.sleep(3)
 
     # Reproducir el audio
     xpath_play_audio = '//*[@id="rc-audio"]/div[3]/div/button'
     espera_explicita_element(driver, xpath_play_audio).click()
 
-    time.sleep(4)
+    time.sleep(3)
 
     xpath_src_audio = '//audio[@id="audio-source"]'
     url_audio = driver.find_element(
@@ -217,16 +242,20 @@ def seleccionar_fechas(xpath, num_days):
 
 
 def boton_descarga():
-    xpath_descarga = '//*[@id="SuperPEBBRecommercemain-613169225"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[3]/div/div/div/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div/div[2]/div/div/div/div/div[1]/div/div/div[3]/div/div[1]/div'
+    xpath_descarga = '//*[@id="SuperPEBBRecommercemain-613169225"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[3]/div/div/div/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div/div[2]/div/div/div/div/div[1]/div/div/div[3]/div/div[1]'
     espera_explicita_element(driver, xpath_descarga).click()
 
 
-def unzip_doc(xpath, file_name):
+def unzip_doc(xpath, source, file_name):
+    if source == "productos":
+        xpath_excel = '//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[2]/div/div/div/div/span[2]/label'
+        espera_explicita_element(driver, xpath_excel).click()
+
     espera_explicita_element(driver, xpath).click()
 
-    time.sleep(15)
+    time.sleep(10)
 
-    # Descargar archivo zip de Ventas
+    # Descargar archivo zip
     xpath_zip = '//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div/div/div/div[2]/div'
     element = espera_explicita_element(driver, xpath_zip)
     zip_name = element.text
@@ -242,14 +271,12 @@ def unzip_doc(xpath, file_name):
 
     # Verificar si el directorio de descargas existe
     if os.path.exists(ruta_origen):
-        time.sleep(5)
-
         zip_file = os.path.join(ruta_origen, zip_name)
 
         if zip_name != "":
             print(f"Archivo encontrado: {zip_file}")
 
-            # Descomprimir el archivo ZIP
+            # Descomprimir el archivo zip
             with zipfile.ZipFile(zip_file, 'r') as zip_ref:
                 # Obtener la lista de archivos extraídos
                 archivo_extraido = zip_ref.namelist()[0]
@@ -272,7 +299,7 @@ def unzip_doc(xpath, file_name):
 
                 print(f"Archivo descomprimido correctamente en {ruta_destino}")
 
-            # Eliminar el archivo ZIP original
+            # Eliminar el archivo zip original
             os.remove(zip_file)
             print(f"Archivo ZIP eliminado: {zip_file}")
         else:
@@ -281,38 +308,19 @@ def unzip_doc(xpath, file_name):
         print("No se pudo encontrar la ruta del directorio de descargas.")
 
 
-# Credenciales de acceso
-user = os.getenv("USER_CENCOSUD")
-psw = os.getenv("PASS_CENCOSUD")
-
 driver = abrir_navegador()
 url_login = 'https://www.cenconlineb2b.com/SuperPE/BBRe-commerce/main'
 get_url_driver(url_login, driver)
 
-xpath_username = '//input[@id="username"]'
-e_username = espera_explicita_element(driver, xpath_username)
-e_username.clear()
-e_username.send_keys(user)
+login_cencosud()
 
-xpath_pass = '//input[@id="password"]'
-e_pass = espera_explicita_element(driver, xpath_pass)
-e_pass.clear()
-e_pass.send_keys(psw)
-
-# Resolver reCAPTCHA de Google
-resolver_recaptcha()
-
-# Click en iniciar login de credenciales
-xpath_submit = '//input[@id="kc-login"]'
-espera_explicita_element(driver, xpath_submit).click()
-
-time.sleep(8)
+# Cerrar banner
+xpath_cerrar_banner = '//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[2]/div/div/div[2]/div[2]'
+espera_explicita_element(driver, xpath_cerrar_banner).click()
 
 # Ingresar a pestaña comercial
 xpath_comercial = '//*[@id="SuperPEBBRecommercemain-613169225"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[3]/div/span[3]'
 espera_explicita_element(driver, xpath_comercial).click()
-
-time.sleep(1)
 
 # Ingresar a subpestaña ventas
 xpath_ventas = '//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[2]/div/div/span[1]'
@@ -321,10 +329,12 @@ espera_explicita_element(driver, xpath_ventas).click()
 # Seleccionar la fecha anterior
 seleccionar_fechas('//*[@id="SuperPEBBRecommercemain-613169225"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[3]/div/div/div/div/div[2]/div/div/div/div/div/div/div[1]/div/div[1]/div/div/div/div[5]/div/div/div[1]/div/div[3]/div/div[1]/div/div[3]/div/button', 1)
 
+time.sleep(1)
+
 xpath_generar = '//*[@id="SuperPEBBRecommercemain-613169225"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[3]/div/div/div/div/div[2]/div/div/div/div/div/div/div[1]/div/div[1]/div/div/div/div[6]/div/div/div'
 espera_explicita_element(driver, xpath_generar).click()
 
-time.sleep(15)
+time.sleep(10)
 
 boton_descarga()
 
@@ -333,7 +343,8 @@ xpath_stock = '//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[2]/div/
 espera_explicita_element(driver, xpath_stock).click()
 
 # Descarga y descomprime archivo zip de Stock
-unzip_doc('//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div[3]/div/div[1]', 'stock_cencosud.csv')
+unzip_doc('//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div[3]/div/div[1]',
+          'stock', 'stock_cencosud.csv')
 
 boton_descarga()
 
@@ -346,6 +357,33 @@ seleccionar_fechas(
     '//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[3]/div/div[3]/div/div[3]/div/div/div/button', 5)
 
 # Descarga y descomprime archivo zip de Ventas
-unzip_doc('//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[9]/div/div/div[1]/div', 'venta_cencosud.csv')
+unzip_doc('//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[9]/div/div/div[1]/div',
+          'venta', 'venta_cencosud.csv')
+
+# Ingresar a pestaña Maestros
+xpath_maestros = '//*[@id="SuperPEBBRecommercemain-613169225"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[3]/div/span[2]'
+espera_explicita_element(driver, xpath_maestros).click()
+
+# Ingresar a subpestaña Ficha de Productos
+xpath_productos = '//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[2]/div/div/span[1]'
+espera_explicita_element(driver, xpath_productos).click()
+
+time.sleep(1)
+
+# Generar reporte de productos
+xpath_generar = '//*[@id="SuperPEBBRecommercemain-613169225"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[3]/div/div/div/div/div[2]/div/div/div/div/div/div/div[1]/div/div[1]/div/div/div/div[3]/div/div/div'
+espera_explicita_element(driver, xpath_generar).click()
+
+time.sleep(5)
+
+xpath_descargar = '//*[@id="SuperPEBBRecommercemain-613169225"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[3]/div/div/div/div/div[2]/div/div/div/div/div/div/div[2]/div/div[1]/div/div/div[3]/div/div[1]'
+espera_explicita_element(driver, xpath_descargar).click()
+
+xpath_reporte = '//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[2]/div/div/div[1]/div'
+espera_explicita_element(driver, xpath_reporte).click()
+
+# Descarga y descomprime archivo zip de Stock
+unzip_doc('//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[3]/div/div/div[1]',
+          'productos', 'productos_cencosud.xls')
 
 cerrar_driver_navegador(driver)
