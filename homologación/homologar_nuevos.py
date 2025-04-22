@@ -22,7 +22,7 @@ conexion = conn.getConexion()
 
 try:
     df = pd.read_excel(
-        "homologación/homologar_nuevos.xlsx", sheet_name="Hoja1", dtype=str)
+        "homologación/nuevos.xlsx", sheet_name="Hoja1", dtype=str)
 
     cursor = conexion.cursor()
 

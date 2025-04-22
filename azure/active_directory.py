@@ -13,6 +13,10 @@ host = os.getenv("DB_HOST")
 database = os.getenv("DB_DATABASE")
 EXCEL_PATH = r"\\fileserver\fileserver\Gghh\Correos\ListaCorreos.xlsx"
 TEXT_PATH = r"\\fileserver\fileserver\Gghh\Correos\UsuariosNoEncontrados.txt"
+SQL_DNI = """SELECT NOMBRE, APELLIDO_PATERNO, APELLIDO_MATERNO, NRO_DOC_IDENTIDAD
+            FROM DATA_MAESTRA
+            WHERE NOMBRE COLLATE Latin1_General_CI_AI LIKE ? AND
+            APELLIDO_PATERNO + APELLIDO_MATERNO COLLATE Latin1_General_CI_AI LIKE ?"""
 
 
 def get_token(tenant, client, secret):
@@ -48,10 +52,6 @@ def get_users(access_token, date):
     conexion = conn.getConexion()
 
     users = []
-    sql_dni = """SELECT NOMBRE, APELLIDO_PATERNO, APELLIDO_MATERNO, NRO_DOC_IDENTIDAD
-                FROM DATA_MAESTRA
-                WHERE NOMBRE COLLATE Latin1_General_CI_AI LIKE ? AND
-                APELLIDO_PATERNO + APELLIDO_MATERNO COLLATE Latin1_General_CI_AI LIKE ?"""
 
     for user in data["value"]:
         if user["givenName"] is not None and user["surname"] is not None and user["jobTitle"] is not None:
@@ -70,7 +70,7 @@ def get_users(access_token, date):
 
             try:
                 cursor = conexion.cursor()
-                cursor.execute(sql_dni, values)
+                cursor.execute(SQL_DNI, values)
 
                 row = cursor.fetchone()
                 if row is not None:
@@ -83,11 +83,7 @@ def get_users(access_token, date):
                         "Telefono": ""
                     })
                 else:
-                    user_not_found({
-                        "name": user["givenName"],
-                        "lastname": user["surname"],
-                        "mail": f"{user['mailNickname']}@laive.pe"
-                    })
+                    get_user_inverted(conexion, users, user, values)
             except Exception as e:
                 print(f"Ha ocurrido un error: {e}")
             finally:
@@ -97,10 +93,37 @@ def get_users(access_token, date):
     return users
 
 
+def get_user_inverted(conexion, users, user, values):
+    """Obtiene los usuarios que tienen el apellido y nombre invertido"""
+
+    try:
+        cursor = conexion.cursor()
+        cursor.execute(SQL_DNI, values)
+
+        row = cursor.fetchone()
+        if row is not None:
+            users.append({
+                "mail": f"{user['mailNickname']}@laive.pe",
+                "EmailAddress": f"{user['mailNickname']}@laive.pe",
+                "Description": user["jobTitle"],
+                "F4": "",
+                "DNI": row[3],
+                "Telefono": ""
+            })
+        else:
+            user_not_found({
+                "name": user["givenName"],
+                "lastname": user["surname"],
+                "mail": f"{user['mailNickname']}@laive.pe"
+            })
+    except Exception as e:
+        print(f"Ha ocurrido un error: {e}")
+
+
 def insert_user(user):
     """Inserta un usuario en un archivo Excel"""
 
-    df = pd.read_excel(EXCEL_PATH)
+    df = pd.read_excel(EXCEL_PATH, dtype=str)
     df = df._append(user, ignore_index=True)
     df.to_excel(EXCEL_PATH, index=False)
 
