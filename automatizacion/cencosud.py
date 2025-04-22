@@ -246,11 +246,7 @@ def boton_descarga():
     espera_explicita_element(driver, xpath_descarga).click()
 
 
-def unzip_doc(xpath, source, file_name):
-    if source == "productos":
-        xpath_excel = '//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[2]/div/div/div/div/span[2]/label'
-        espera_explicita_element(driver, xpath_excel).click()
-
+def unzip_doc(xpath, file_name):
     espera_explicita_element(driver, xpath).click()
 
     time.sleep(10)
@@ -343,8 +339,7 @@ xpath_stock = '//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[2]/div/
 espera_explicita_element(driver, xpath_stock).click()
 
 # Descarga y descomprime archivo zip de Stock
-unzip_doc('//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div[3]/div/div[1]',
-          'stock', 'stock_cencosud.csv')
+unzip_doc('//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div[3]/div/div[1]', 'stock_cencosud.csv')
 
 boton_descarga()
 
@@ -357,8 +352,7 @@ seleccionar_fechas(
     '//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[3]/div/div[3]/div/div[3]/div/div/div/button', 5)
 
 # Descarga y descomprime archivo zip de Ventas
-unzip_doc('//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[9]/div/div/div[1]/div',
-          'venta', 'venta_cencosud.csv')
+unzip_doc('//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[9]/div/div/div[1]/div', 'venta_cencosud.csv')
 
 # Ingresar a pestaña Maestros
 xpath_maestros = '//*[@id="SuperPEBBRecommercemain-613169225"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[3]/div/span[2]'
@@ -383,7 +377,6 @@ xpath_reporte = '//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[2]/di
 espera_explicita_element(driver, xpath_reporte).click()
 
 # Descarga y descomprime archivo zip de Stock
-unzip_doc('//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[3]/div/div/div[1]',
-          'productos', 'productos_cencosud.xls')
+unzip_doc('//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div[3]/div/div/div[1]', 'productos_cencosud.csv')
 
 cerrar_driver_navegador(driver)

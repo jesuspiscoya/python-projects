@@ -12,7 +12,8 @@ distributors = [
     "3a",
     "Corseba",
     "Rame",
-    "Dinorsa"
+    "Goluan"
+    "Dinorsa",
 ]
 
 # Conexión a la base de datos
@@ -21,7 +22,7 @@ conexion = conn.getConexion()
 
 try:
     df = pd.read_excel(
-        "homologación/nuevos.xlsx", sheet_name="Hoja1", dtype=str)
+        "homologación/homologar_nuevos.xlsx", sheet_name="Hoja1", dtype=str)
 
     cursor = conexion.cursor()
 
