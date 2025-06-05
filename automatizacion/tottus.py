@@ -1,14 +1,17 @@
 import os
-import shutil
 import time
+import shutil
 from dotenv import load_dotenv
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait, Select
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 load_dotenv()
+
 
 def abrir_navegador():
     # navegador - configuracion
@@ -46,7 +49,7 @@ def cerrar_driver_navegador(wdriver):
 
 def espera_explicita_element(wdriver, xpath):
     try:
-        wait = WebDriverWait(wdriver, 10)
+        wait = WebDriverWait(wdriver, 30)
         wait.until(EC.presence_of_element_located((By.XPATH, xpath)))
         wait.until(EC.visibility_of_element_located((By.XPATH, xpath)))
         wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
@@ -58,94 +61,158 @@ def espera_explicita_element(wdriver, xpath):
         print("Espera explicita, no se encontro o no se visualizo el elemento: " + xpath)
 
 
-def descarga_archivo(url, file_name):
-    # Ingresar a página de descarga
-    get_url_driver(url, driver)
+def login_tottus():
+    # Credenciales de acceso
+    user = os.getenv("USER_TOTTUS")
+    psw = os.getenv("PASS_TOTTUS")
 
-    # Descargar archivo
-    xpath_file = '//*[@id="row"]/tbody/tr[1]/td/a'
-    button_download = espera_explicita_element(driver, xpath_file)
-    button_download.click()
+    xpath_username = '//input[@id="username"]'
+    e_username = espera_explicita_element(driver, xpath_username)
+    e_username.send_keys(user)
 
-    txt_name = button_download.get_attribute('href').replace(
-        'https://b2b.tottus.com/b2btopepr/servlet/download/', '')
+    xpath_pass = '//input[@id="password"]'
+    e_pass = espera_explicita_element(driver, xpath_pass)
+    e_pass.send_keys(psw)
 
-    time.sleep(5)
+    # Click en iniciar login de credenciales
+    xpath_submit = '//*[@id="loginForm"]/div[4]/div/button'
+    espera_explicita_element(driver, xpath_submit).click()
 
+
+def select_report(report_name):
+    driver.switch_to.default_content()
+
+    # Ingresar a Descargables
+    xpath_downloadable = '//*[@id="single-spa-application:reports"]/div[2]/div/div[2]/div/div/div/div[2]/div/div/div/div/div/div/div/header/button[3]'
+    espera_explicita_element(driver, xpath_downloadable).click()
+
+    # Ingresar al reporte
+    espera_explicita_element(driver, report_name).click()
+
+    time.sleep(10)
+
+    # Cambiar a iframe de Looker Studio
+    driver.switch_to.frame(0)
+
+
+def download_report():
+    xpath_table = '//*[@id="dashboard-layout-wrapper"]'
+    table = espera_explicita_element(driver, xpath_table)
+
+    hover = ActionChains(driver)
+    hover.move_to_element(table).perform()
+
+    # Seleccionar mostrar más acciones
+    xpath_more = '//*[@id="styled-tile-dashboard"]/div/section/div/div[1]/div/button[1]'
+    espera_explicita_element(driver, xpath_more).click()
+
+    # Seleccionar Download data
+    xpath_download_data = '/html/body/div[3]/div/div/div/div/div/ul/li[1]'
+    espera_explicita_element(driver, xpath_download_data).click()
+
+    time.sleep(3)
+
+    # Seleccionar Advanced data options
+    xpath_options = '/html/body/div[3]/div/div/div[2]/div/div/div/div[2]/div/div'
+    espera_explicita_element(driver, xpath_options).click()
+
+    # Seleccionar Unformatted data
+    xpath_unformatted = '/html/body/div[3]/div/div/div[2]/div/div/div/div[2]/div/div[2]/div/div/div[2]/div[1]/div/div/div[2]'
+    espera_explicita_element(driver, xpath_unformatted).click()
+
+    # Seleccionar all results
+    xpath_all = '/html/body/div[3]/div/div/div[2]/div/div/div/div[2]/div/div[2]/div/div/div[3]/div[1]/div/div/div[2]'
+    espera_explicita_element(driver, xpath_all).click()
+
+    xpath_download = '//*[@id="qr-export-modal-download"]'
+    espera_explicita_element(driver, xpath_download).click()
+
+    time.sleep(30)
+
+
+def move_csv(file_name_origen, file_name_destino):
     # Obtener la ruta del directorio de inicio del usuario
-    directorio_usuario = os.path.expanduser('~')
+    user_directory = os.path.expanduser('~')
     # Construir la ruta completa del directorio de descargas
-    ruta_origen = os.path.join(directorio_usuario, 'Downloads')
+    ruta_origen = os.path.join(user_directory, 'Downloads')
+    archivo_origen = os.path.join(ruta_origen, file_name_origen)
     ruta_destino = r'\\selloutapp\FTP\Moderno\TOTTUS'
+    archivo_destino = os.path.join(ruta_destino, file_name_destino)
 
     # Verificar si el directorio de descargas existe
-    if os.path.exists(ruta_origen):
-        txt_origen = os.path.join(ruta_origen, txt_name)
+    if os.path.exists(archivo_origen):
+        print(f"Archivo encontrado: {archivo_origen}")
 
-        if os.path.exists(txt_origen):
-            print(f"Archivo encontrado: {txt_origen}")
+        # Mover el archivo
+        shutil.move(archivo_origen, ruta_destino)
 
-            # Cambiar el nombre del archivo
-            os.rename(txt_origen, os.path.join(ruta_origen, file_name))
+        # Verificar si el archivo con el nuevo nombre ya existe
+        if os.path.exists(archivo_destino):
+            print(
+                f"El archivo {file_name_destino} ya existe. Se eliminará y se sobrescribirá.")
+            # Eliminar el archivo existente
+            os.remove(archivo_destino)
 
-            nuevo_nombre = os.path.join(ruta_destino, file_name)
+        # Cambiar el nombre del archivo
+        os.rename(os.path.join(ruta_destino, file_name_origen), archivo_destino)
 
-            # Verificar si el archivo con el nuevo nombre ya existe
-            if os.path.exists(nuevo_nombre):
-                print(f"El archivo {
-                      file_name} ya existe. Se eliminará y se sobrescribirá.")
-                # Eliminar el archivo existente
-                os.remove(nuevo_nombre)
-
-            # Mover el archivo
-            shutil.move(os.path.join(ruta_origen, file_name), ruta_destino)
-        else:
-            print("No se encontró el archivo.")
+        print(f"Archivo movido correctamente en: {ruta_destino}")
     else:
-        print("No se pudo encontrar la ruta del directorio de descargas.")
+        print(f"No se encontró el archivo {file_name_origen}.")
 
 
 driver = abrir_navegador()
-url_login = 'https://b2b.tottus.com/b2btoclpr/grafica/html/main_home.html'
+url_login = 'https://fbusinesscenter.com/login'
 get_url_driver(url_login, driver)
 
-# Credenciales de acceso
-company = os.getenv("COMPANY_TOTTUS")
-user = os.getenv("USER_TOTTUS")
-psw = os.getenv("PASS_TOTTUS")
+login_tottus()
 
-# Seleccionar B2B Tottus Perú
-xpath_select = '//*[@id="CADENA"]'
-Select(espera_explicita_element(driver, xpath_select)
-       ).select_by_visible_text('Tottus Perú')
+# Ingresar a pestaña Market Insights
+xpath_reports = '//*[@id="single-spa-application:home"]/div[2]/div/div[2]/div[1]/div[2]'
+espera_explicita_element(driver, xpath_reports).click()
 
-xpath_company = '//*[@id="empresa"]'
-e_company = espera_explicita_element(driver, xpath_company)
-e_company.clear()
-e_company.send_keys(company)
+# Ingresar al reporte de Ventas Diarias
+select_report(
+    '//*[@id="popover-484f5b57-01e0-4be7-8a50-ed6d22d98d1a"]/div[3]/button[2]')
 
-xpath_username = '//*[@id="usuario"]'
-e_username = espera_explicita_element(driver, xpath_username)
-e_username.clear()
-e_username.send_keys(user)
+# Seleccionar Fecha
+xpath_date = '//*[@id="lk-react-container"]/div/div/div/section/div/div[1]/div/div[2]/section/div/div[1]/div/span'
+espera_explicita_element(driver, xpath_date).click()
 
-xpath_pass = '//*[@id="clave"]'
-e_pass = espera_explicita_element(driver, xpath_pass)
-e_pass.clear()
-e_pass.send_keys(psw)
+# Seleccionar Últimos 7 días
+xpath_week = '//*[@id="panel-0"]/div/ul/li[3]'
+week = espera_explicita_element(driver, xpath_week).click()
 
-# Click en iniciar login de credenciales
-xpath_submit = '//*[@id="entrar2"]'
-espera_explicita_element(driver, xpath_submit).click()
+time.sleep(3)
 
-time.sleep(5)
+# Actualizar datos
+xpath_body = '//*[@id="lk-layout-embed"]'
+espera_explicita_element(driver, xpath_body).send_keys(
+    Keys.CONTROL + Keys.SHIFT + Keys.ENTER)
 
-# Descargar archivo de Ventas
-descarga_archivo(
-    'https://b2b.tottus.com/b2btopepr/logica/jsp/B2BvFDescarga.do?tipo=eVTA&opcId=223', 'venta_tottus.txt')
+time.sleep(8)
 
-# Descargar archivo de Stock
-descarga_archivo(
-    'https://b2b.tottus.com/b2btopepr/logica/jsp/B2BvFDescarga.do?tipo=eCAT', 'stock_tottus.txt')
+download_report()
+
+# Mover el archivo descargado a la ruta de destino
+move_csv('Ventas diarias.csv', 'venta_tottus.csv')
+
+# Ingresar al reporte de Stock de hoy
+select_report(
+    '//*[@id="popover-484f5b57-01e0-4be7-8a50-ed6d22d98d1a"]/div[3]/button[5]')
+
+download_report()
+
+# Mover el archivo descargado a la ruta de destino
+move_csv('Descargable instock.csv', 'stock_tottus.csv')
+
+# Ingresar al reporte de Maestro de Productos
+select_report(
+    '//*[@id="popover-484f5b57-01e0-4be7-8a50-ed6d22d98d1a"]/div[3]/button[6]')
+
+download_report()
+
+# Mover el archivo descargado a la ruta de destino
+move_csv('Maestro de productos.csv', 'productos_tottus.csv')
 
 cerrar_driver_navegador(driver)

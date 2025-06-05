@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def generated_csv(url, token, file_name):
-    header = {"Authorization": f"Bearer {token}"}
+def generated_csv(url, key_token, file_name):
+    header = {"Authorization": f"Bearer {key_token}"}
     body = {
         "Proveedor": "6549115da23ca678b53ded25",
         "FechaInicial": str(date.today() - timedelta(days=5)),
@@ -17,26 +17,26 @@ def generated_csv(url, token, file_name):
 
     # Obtener datos de la API
     res = requests.post(url, json=body, headers=header, timeout=120)
-    data = res.json()
+    res_data = res.json()
 
     if res.status_code == 200:
         values = []
 
         # Insertar los encabezados
-        values.append(list(data[0].keys()))
+        values.append(list(res_data[0].keys()))
 
         # Insertar los valores
-        for item in data:
+        for item in res_data:
             values.append(list(item.values()))
 
         # Escribir el archivo CSV con los datos de las Ventas
-        with open(rf'\\selloutapp\FTP\Moderno\CORPORACION VEGA\{file_name}.csv', 'w', newline='', encoding='utf-8') as file:
+        with open(rf'\\selloutapp\FTP\Moderno\CORPORACION VEGA\{file_name}.csv', 'w', newline='', encoding='latin1') as file:
             writer = csv.writer(file)
             writer.writerows(values)
 
         print(f'Se generó el archivo {file_name}.csv con éxito.')
     else:
-        print(f"{data.get('message')}")
+        print(f"{res_data.get('message')}")
 
 
 # Credenciales de acceso

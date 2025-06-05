@@ -1,12 +1,12 @@
 from datetime import date, timedelta
+from subprocess import CalledProcessError
 import os
+import subprocess
 import time
 import zipfile
 import requests
 import speech_recognition as sr
 from dotenv import load_dotenv
-from pydub import AudioSegment
-from pydub.exceptions import CouldntDecodeError
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -90,10 +90,14 @@ def login_cencosud():
 
 
 def transcribir_audio():
+    ffmpeg_exe = r"C:\Users\jpiscoya\Downloads\ffmpeg\bin\ffmpeg.exe"
+    mp3_file = "audio.mp3"
+    wav_file = "audio.wav"
+
     # Convertir el archivo MP3 a WAV
     try:
-        audio = AudioSegment.from_mp3("audio.mp3")
-        audio.export("audio.wav", format="wav")
+        subprocess.run(
+            [ffmpeg_exe, "-y", "-i", mp3_file, wav_file], check=True)
 
         # Transcribir el audio WAV a texto
         recognizer = sr.Recognizer()
@@ -123,7 +127,7 @@ def transcribir_audio():
     except sr.UnknownValueError:
         print("No se pudo entender el audio. Reintentando...")
         resolver_recaptcha(False)
-    except CouldntDecodeError:
+    except CalledProcessError:
         print("Error al convertir el archivo de audio. Reintentando...")
         resolver_recaptcha(False)
     except sr.RequestError as e:
@@ -165,8 +169,6 @@ def resolver_recaptcha(is_valid=True):
     xpath_src_audio = '//audio[@id="audio-source"]'
     url_audio = driver.find_element(
         By.XPATH, xpath_src_audio).get_attribute("src")
-
-    print(f"URL de audio: {url_audio}")
 
     # Descargar el archivo de audio
     response = requests.get(url_audio, timeout=60)
@@ -309,10 +311,6 @@ url_login = 'https://www.cenconlineb2b.com/SuperPE/BBRe-commerce/main'
 get_url_driver(url_login, driver)
 
 login_cencosud()
-
-# Cerrar banner
-xpath_cerrar_banner = '//*[@id="SuperPEBBRecommercemain-613169225-overlays"]/div[2]/div/div/div[2]/div[2]'
-espera_explicita_element(driver, xpath_cerrar_banner).click()
 
 # Ingresar a pestaña comercial
 xpath_comercial = '//*[@id="SuperPEBBRecommercemain-613169225"]/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[1]/div/div/div[3]/div/span[3]'

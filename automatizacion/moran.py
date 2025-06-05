@@ -98,8 +98,8 @@ url_login = 'https://outlook.office.com/mail/'
 get_url_driver(url_login, driver)
 
 # Credenciales de acceso
-user = os.getenv("USER_OUTLOOK")
-psw = os.getenv("PASS_OUTLOOK")
+user = os.getenv("USER_MORAN")
+psw = os.getenv("PASS_MORAN")
 
 xpath_username = '//input[@id="i0116"]'
 e_username = espera_explicita_element(driver, xpath_username)
@@ -132,7 +132,7 @@ time.sleep(10)
 xpath_donwload = '//*[@id="focused"]/div[2]/div/div/div/div/div'
 espera_explicita_element(driver, xpath_donwload).click()
 
-time.sleep(10)
+time.sleep(15)
 
 unzip_doc()
 
